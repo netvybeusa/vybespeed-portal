@@ -1,26 +1,49 @@
 @import "tailwindcss";
 
+/* 🌑 Default Theme — Always Dark */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0A0A0F;        /* Deep Net Vybe black */
+  --foreground: #FFFFFF;        /* Clean white text */
+  
+  --nv-bg: #0A0A0F;
+  --nv-bg-secondary: #11121A;
+
+  --nv-purple: #A259FF;
+  --nv-blue: #00E5FF;
+  --nv-pink: #FF2DAF;
+
+  --nv-text: #FFFFFF;
+  --nv-text-muted: #8A8A9C;
+
+  --nv-glow-purple: 0 0 25px rgba(162, 89, 255, 0.6);
+  --nv-glow-blue: 0 0 25px rgba(0, 229, 255, 0.6);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 🖥️ Mobile‑Friendly, Universal Body Styling */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;            /* Ensures full‑screen dark background on mobile */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
 }
