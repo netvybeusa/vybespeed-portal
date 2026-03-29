@@ -1,19 +1,27 @@
 "use client";
 
-import React, { ReactNode } from "react";
-
-interface SlideWrapperProps {
+type SlideWrapperProps = {
   activeStep: number;
-  children: ReactNode;
-}
+  steps: React.ReactNode[];
+};
 
-export default function SlideWrapper({ activeStep, children }: SlideWrapperProps) {
+export default function SlideWrapper({ activeStep, steps }: SlideWrapperProps) {
   return (
     <div
-      className="flex transition-transform duration-500 ease-in-out w-full h-full"
+      className="
+        w-full
+        flex
+        transition-transform
+        duration-500
+        ease-in-out
+      "
       style={{ transform: `translateX(-${activeStep * 100}%)` }}
     >
-      {children}
+      {steps.map((step, index) => (
+        <div key={index} className="w-full flex-shrink-0">
+          {step}
+        </div>
+      ))}
     </div>
   );
 }

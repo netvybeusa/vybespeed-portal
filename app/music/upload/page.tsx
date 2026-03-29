@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { app } from "@/firebase/firebaseConfig";
 
-export default function UploadModal({ onClose }: any) {
+export default function UploadMusicPage() {
+  const router = useRouter();
+
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -21,17 +24,17 @@ export default function UploadModal({ onClose }: any) {
     try {
       // ⭐ Load Firebase SDKs on the client only
       const { getAuth } = await import("firebase/auth");
-      const {
-        getStorage,
-        ref,
-        uploadBytes,
-        getDownloadURL,
+      const { 
+        getStorage, 
+        ref, 
+        uploadBytesResumable, 
+        getDownloadURL 
       } = await import("firebase/storage");
-      const {
-        getFirestore,
-        addDoc,
-        collection,
-        serverTimestamp,
+      const { 
+        getFirestore, 
+        doc, 
+        setDoc, 
+        serverTimestamp 
       } = await import("firebase/firestore");
 
       const auth = getAuth(app);
@@ -47,29 +50,40 @@ export default function UploadModal({ onClose }: any) {
 
       // Upload file
       const storageRef = ref(storage, `tracks/${user.uid}/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-      // Save metadata
-      await addDoc(collection(db, "tracks"), {
-        uid: user.uid,
-        title,
-        url: downloadURL,
-        timestamp: serverTimestamp(),
-      });
+      uploadTask.on(
+        "state_changed",
+        () => {},
+        (err) => {
+          console.error(err);
+          setError("Upload failed.");
+          setUploading(false);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-      onClose();
+          // Save metadata
+          await setDoc(doc(db, "tracks", `${user.uid}-${Date.now()}`), {
+            uid: user.uid,
+            title,
+            url: downloadURL,
+            timestamp: serverTimestamp(),
+          });
+
+          router.push("/music");
+        }
+      );
     } catch (err) {
-      console.error("❌ UPLOAD MODAL ERROR:", err);
+      console.error("❌ UPLOAD ERROR:", err);
       setError("Upload failed.");
-    } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="p-6 bg-black/70 rounded-xl text-white">
-      <h2 className="text-xl font-bold mb-4">Upload Track</h2>
+    <div className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">Upload Music</h1>
 
       {error && <p className="text-red-400 mb-3">{error}</p>}
 
@@ -93,13 +107,6 @@ export default function UploadModal({ onClose }: any) {
         className="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50"
       >
         {uploading ? "Uploading..." : "Upload"}
-      </button>
-
-      <button
-        onClick={onClose}
-        className="ml-4 px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
-      >
-        Cancel
       </button>
     </div>
   );

@@ -1,100 +1,111 @@
 "use client";
 
-import { useAuth } from "../../src/context/AuthContext";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { app } from "@/firebase/firebaseConfig";
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [name, setName] = useState("");
-  const [genre, setGenre] = useState("");
-  const [bio, setBio] = useState("");
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    let unsub: any;
+
+    async function loadProfile() {
+      try {
+        // ⭐ Load Firebase SDKs on the client only
+        const { getAuth } = await import("firebase/auth");
+        const { getFirestore, doc, getDoc } = await import("firebase/firestore");
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const user = auth.currentUser;
+        if (!user) {
+          router.replace("/login");
+          return;
+        }
+
+        const docRef = doc(db, "users", user.uid);
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+          setProfile(snap.data());
+        } else {
+          setProfile({});
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ PROFILE LOAD ERROR:", err);
+        setError("Failed to load profile.");
+        setLoading(false);
+      }
     }
 
-    if (user) {
-      setName(user.displayName || "");
+    loadProfile();
+
+    return () => unsub && unsub();
+  }, [router]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError("");
+
+    try {
+      const { getAuth } = await import("firebase/auth");
+      const { getFirestore, doc, updateDoc } = await import("firebase/firestore");
+
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      const user = auth.currentUser;
+      if (!user) {
+        setError("Not logged in.");
+        setSaving(false);
+        return;
+      }
+
+      const docRef = doc(db, "users", user.uid);
+      await updateDoc(docRef, profile);
+
+      setSaving(false);
+    } catch (err) {
+      console.error("❌ PROFILE SAVE ERROR:", err);
+      setError("Failed to save profile.");
+      setSaving(false);
     }
-  }, [user, loading, router]);
-
-  if (loading) return <div className="p-8">Loading...</div>;
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-
-    e.preventDefault();
-    alert("Profile saved! (Database hook goes here.)");
   };
 
+  if (loading) {
+    return <div className="p-6 text-white">Loading profile…</div>;
+  }
+
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
 
-      {/* PROFILE HEADER */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-20 h-20 rounded-full bg-indigo-200 flex items-center justify-center text-3xl font-semibold text-indigo-700">
-          {name ? name[0] : user?.email?.[0]?.toUpperCase()}
+      {error && <p className="text-red-400 mb-3">{error}</p>}
 
-        </div>
+      <input
+        type="text"
+        placeholder="Display Name"
+        value={profile?.displayName || ""}
+        onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
+        className="w-full mb-4 p-2 bg-white/10 rounded"
+      />
 
-        <div>
-          <h1 className="text-2xl font-bold text-indigo-700">My Profile</h1>
-          <p className="text-gray-600">{user?.email}</p>
-        </div>
-      </div>
-
-      {/* FORM CARD */}
-      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Profile Details</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-
-          {/* Name */}
-          <div>
-            <label className="block text-left font-semibold mb-1">Artist Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-              placeholder="Your artist or stage name"
-            />
-          </div>
-
-          {/* Genre */}
-          <div>
-            <label className="block text-left font-semibold mb-1">Genre</label>
-            <input
-              type="text"
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-              placeholder="Ex: Hip-Hop, R&B, Pop"
-            />
-          </div>
-
-          {/* Bio */}
-          <div>
-            <label className="block text-left font-semibold mb-1">Bio</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full p-2 border rounded h-28 focus:ring focus:ring-indigo-200"
-              placeholder="Tell us about yourself..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700"
-          >
-            Save Profile
-          </button>
-        </form>
-      </div>
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50"
+      >
+        {saving ? "Saving..." : "Save Changes"}
+      </button>
     </div>
   );
 }

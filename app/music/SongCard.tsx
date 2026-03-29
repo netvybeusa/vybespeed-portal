@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { format } from "date-fns";
-import AudioPlayer from "@/components/AudioPlayer";
+import { usePlayer } from "@/context/PlayerContext";
 
 type Song = {
   id: string;
@@ -18,6 +18,8 @@ type SongCardProps = {
 };
 
 export default function SongCard({ song }: SongCardProps) {
+  const { playTrack } = usePlayer();
+
   const createdDate =
     song.createdAt?.seconds
       ? new Date(song.createdAt.seconds * 1000)
@@ -31,7 +33,7 @@ export default function SongCard({ song }: SongCardProps) {
 
   return (
     <div className="group bg-[#11121A] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden shadow-[0_0_0_rgba(0,0,0,0)] hover:shadow-[0_0_30px_rgba(162,89,255,0.4)] transition">
-      
+
       {/* Cover Art */}
       <div className="relative aspect-square w-full overflow-hidden">
         <Image
@@ -41,19 +43,23 @@ export default function SongCard({ song }: SongCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
 
-        {/* Old Play Button (optional to remove later) */}
+        {/* Global Play Button */}
         <button
           className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-black/70 text-xs font-semibold border border-[rgba(255,255,255,0.2)] hover:bg-black/90 transition"
-          onClick={() => {
-            const audio = new Audio(song.url);
-            audio.play().catch(console.error);
-          }}
+          onClick={() =>
+            playTrack({
+              id: song.id,
+              title: song.title,
+              url: song.url,
+              artworkUrl: song.coverUrl
+            })
+          }
         >
           Play
         </button>
       </div>
 
-      {/* Text + Player */}
+      {/* Text */}
       <div className="p-3">
         <div className="text-sm font-semibold truncate">
           {song.title}
@@ -67,11 +73,6 @@ export default function SongCard({ song }: SongCardProps) {
 
         <div className="text-[10px] text-[var(--nv-text-muted)] mt-1">
           {displayDate}
-        </div>
-
-        {/* Audio Player */}
-        <div className="mt-3">
-          <AudioPlayer url={song.url} />
         </div>
       </div>
     </div>

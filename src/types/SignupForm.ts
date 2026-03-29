@@ -1,19 +1,23 @@
-export type SignupFormData = {
+export interface SignupFormData {
   artistName: string;
-  stageName: string;
   email: string;
-  phone: string;
-  genre: string;
-  trackTitle: string;
-  trackFile: File | null;
-  trackLink: string;
+  password: string;
 
-  // StepProfile fields
-  bio: string;
-  socialHandle: string;
-  notes: string;
+  stageName?: string;
+  phone?: string;
+  bio?: string;
+  socialHandle?: string;
+  notes?: string;
 
-  // StepConsent fields
-  consentTerms: boolean;
-  consentContact: boolean;
-};
+  trackTitle?: string;
+  trackFile?: File | null;
+  trackLink?: string;
+
+  // NEW: Track genre
+  genre?: string;
+
+  // Consent fields
+  ownsRights?: boolean;
+  acceptsTerms?: boolean;
+  reviewConsent?: boolean;
+}

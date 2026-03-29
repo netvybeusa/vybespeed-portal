@@ -1,17 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  User
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { app } from "@/firebase/firebaseConfig";
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -27,27 +20,46 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  
+  // ⭐ Initialize Firebase Auth on the client only
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    let unsubscribe: any;
+
+    async function init() {
+      const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+      const auth = getAuth(app);
+
+      unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        setUser(firebaseUser);
+        setLoading(false);
+      });
+    }
+
+    init();
+
+    return () => unsubscribe && unsubscribe();
   }, []);
 
+  // ⭐ SIGN IN
   const signIn = async (email: string, password: string) => {
+    const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
+    const auth = getAuth(app);
     await signInWithEmailAndPassword(auth, email, password);
   };
 
+  // ⭐ SIGN UP
   const signUp = async (email: string, password: string) => {
+    const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
+    const auth = getAuth(app);
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
+  // ⭐ SIGN OUT
   const signOut = async () => {
+    const { getAuth } = await import("firebase/auth");
+    const auth = getAuth(app);
     await auth.signOut();
   };
 

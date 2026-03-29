@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { SignupFormData } from "@/types/SignupForm";
 
 type StepConsentProps = {
@@ -15,56 +14,68 @@ export default function StepConsent({ formData, setFormData }: StepConsentProps)
       {/* Glowing Card */}
       <div
         className="
-          w-full max-w-xl 
-          bg-[rgba(20,20,20,0.85)]
-          rounded-2xl 
-          p-8 
+          w-full max-w-md
+          bg-black/40
+          border border-purple-700/40
           shadow-[0_0_25px_rgba(139,92,246,0.35)]
-          border border-purple-700/30
-          backdrop-blur-md
+          drop-shadow-[0_0_12px_rgba(168,85,247,0.45)]
+          rounded-2xl p-6
+          flex flex-col gap-6
         "
       >
-        {/* Title */}
-        <h3 className="text-xl font-semibold text-purple-300 mb-6 text-center drop-shadow-[0_0_10px_rgba(168,85,247,0.45)]">
-          Consent & Terms
-        </h3>
+        <h2 className="text-xl font-semibold text-purple-300 text-center drop-shadow-[0_0_10px_rgba(168,85,247,0.45)]">
+          Consent & Agreements
+        </h2>
 
-        <div className="space-y-6 text-purple-200">
+        {/* Consent Items */}
+        <div className="flex flex-col gap-4">
 
-          {/* Terms Consent */}
-          <label className="flex items-start space-x-3 cursor-pointer">
+          {/* Rights Ownership */}
+          <label className="flex items-start gap-3 text-purple-300">
             <input
               type="checkbox"
-              checked={formData.consentTerms}
-              onChange={(e) => setFormData({ consentTerms: e.target.checked })}
+              checked={formData.ownsRights || false}
+              onChange={(e) => setFormData({ ownsRights: e.target.checked })}
               className="
-                w-5 h-5 rounded 
-                bg-black/40 border border-purple-700/40 
-                checked:bg-purple-600 checked:border-purple-500
+                h-5 w-5 rounded bg-black/40
+                border border-purple-700/40
+                text-purple-500
                 focus:ring-purple-500
               "
             />
-            <span className="leading-snug">
-              I agree to the platform terms and confirm that I have the rights to submit this track.
-            </span>
+            <span>I confirm I own the rights to this music.</span>
           </label>
 
-          {/* Contact Consent */}
-          <label className="flex items-start space-x-3 cursor-pointer">
+          {/* Terms Agreement */}
+          <label className="flex items-start gap-3 text-purple-300">
             <input
               type="checkbox"
-              checked={formData.consentContact}
-              onChange={(e) => setFormData({ consentContact: e.target.checked })}
+              checked={formData.acceptsTerms || false}
+              onChange={(e) => setFormData({ acceptsTerms: e.target.checked })}
               className="
-                w-5 h-5 rounded 
-                bg-black/40 border border-purple-700/40 
-                checked:bg-purple-600 checked:border-purple-500
+                h-5 w-5 rounded bg-black/40
+                border border-purple-700/40
+                text-purple-500
                 focus:ring-purple-500
               "
             />
-            <span className="leading-snug">
-              I agree to be contacted by the Net Vybe team regarding my submission.
-            </span>
+            <span>I agree to Net Vybe’s terms and conditions.</span>
+          </label>
+
+          {/* Review Notice */}
+          <label className="flex items-start gap-3 text-purple-300">
+            <input
+              type="checkbox"
+              checked={formData.reviewConsent || false}
+              onChange={(e) => setFormData({ reviewConsent: e.target.checked })}
+              className="
+                h-5 w-5 rounded bg-black/40
+                border border-purple-700/40
+                text-purple-500
+                focus:ring-purple-500
+              "
+            />
+            <span>I understand my content may be reviewed for quality and safety.</span>
           </label>
 
         </div>

@@ -1,70 +1,84 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SignupFormData } from "@/types/SignupForm";
 
-// Firebase
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { app } from "@/firebase/firebaseConfig";
+import StepArtistInfo, {
+  requiredFields as artistRequired,
+} from "@/components/signup/StepArtistInfo";
 
-// Steps
-import StepArtistInfo, { requiredFields as artistRequired } from "@/components/signup/StepArtistInfo";
 import StepTrackInfo from "@/components/signup/StepTrackInfo";
 import StepProfile from "@/components/signup/StepProfile";
 import StepConsent from "@/components/signup/StepConsent";
 import StepNavigation from "@/components/signup/StepNavigation";
+import SlideWrapper from "@/components/signup/SlideWrapper";
 
-export default function SignupPage(): any {
+import { app } from "@/firebase/firebaseConfig";
+
+export default function SignupPage() {
   const router = useRouter();
+
   const [activeStep, setActiveStep] = useState(0);
-
-  // Success screen state
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
-  // Global form data
   const [formData, setFormData] = useState<SignupFormData>({
     artistName: "",
-    stageName: "",
     email: "",
+    password: "",
+    stageName: "",
     phone: "",
-    genre: "",
-    trackTitle: "",
-    trackFile: null,
-    trackLink: "",
     bio: "",
     socialHandle: "",
     notes: "",
-    consentTerms: false,
-    consentContact: false,
+    trackTitle: "",
+    trackLink: "",
+    genre: "",
+    ownsRights: false,
+    acceptsTerms: false,
+    reviewConsent: false,
   });
 
-  // Validation errors
-  const [errors, setErrors] = useState<string[]>([]);
-
-  // Submission loading state
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Validation rules per step
   const validationRules = [
-    artistRequired, // Step 1
-    [],             // Step 2
-    [],             // Step 3
-    ["consentTerms"] // Step 4
+    artistRequired,
+    [],
+    [],
+    ["ownsRights", "acceptsTerms", "reviewConsent"],
   ];
 
-  // Submit handler
   const onSubmit = async () => {
     setIsSubmitting(true);
 
     try {
-      const storage = getStorage(app);
+      console.log("🔥 SIGNUP ATTEMPT:", formData.email);
+
+      // ⭐ IMPORT FIREBASE SDKs ON THE CLIENT ONLY
+      const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { getFirestore, collection, addDoc, serverTimestamp } = await import("firebase/firestore");
+      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+
+      const auth = getAuth(app);
       const db = getFirestore(app);
+      const storage = getStorage(app);
+
+      // ⭐ CREATE USER IN FIREBASE AUTH
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      const user = userCredential.user;
+      console.log("✅ USER CREATED:", user.uid);
 
       let trackUrl = "";
 
-      // Upload track file if provided
+      // ⭐ UPLOAD TRACK IF PROVIDED
       if (formData.trackFile) {
         const storageRef = ref(
           storage,
@@ -75,56 +89,63 @@ export default function SignupPage(): any {
         trackUrl = await getDownloadURL(storageRef);
       }
 
-      // Build Firestore-safe payload (remove File object)
-      const { trackFile, ...safeData } = formData;
+      // ⭐ CLEAN DATA BEFORE SAVING
+      const { trackFile, password, ...safeData } = formData;
 
-      // Save submission to Firestore
+      // ⭐ SAVE SUBMISSION TO FIRESTORE
       await addDoc(collection(db, "submissions"), {
+        uid: user.uid,
         ...safeData,
         trackUrl,
         timestamp: serverTimestamp(),
         status: "Under Review",
       });
 
-      // Show success screen
+      console.log("✅ SAVED TO FIRESTORE");
+
+      // SUCCESS UI
       setIsSuccess(true);
 
-      // Fade out before redirect
+      // FADE + REDIRECT
       setTimeout(() => {
         document.body.classList.add("fade-out");
-      }, 1500);
+      }, 1200);
 
-      // Redirect after fade-out
       setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
+        router.replace("/dashboard");
+      }, 1800);
 
-    } catch (error) {
-      console.error("Submission error:", error);
-      alert("There was an issue submitting your track.");
+    } catch (error: any) {
+      console.error("❌ SIGNUP ERROR:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        alert("Email already in use.");
+      } else if (error.code === "auth/weak-password") {
+        alert("Password must be at least 6 characters.");
+      } else if (error.code === "auth/invalid-api-key") {
+        alert("Firebase API key is invalid. Check environment variables.");
+      } else {
+        alert("Signup failed. Check console.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Steps in order
   const steps = [
     <StepArtistInfo
       formData={formData}
       setFormData={setFormData}
       errors={errors}
     />,
-
     <StepTrackInfo
       formData={formData}
       setFormData={(data) => setFormData({ ...formData, ...data })}
     />,
-
     <StepProfile
       formData={formData}
       setFormData={setFormData}
     />,
-
     <StepConsent
       formData={formData}
       setFormData={(data) => setFormData({ ...formData, ...data })}
@@ -134,50 +155,54 @@ export default function SignupPage(): any {
   return (
     <div className="min-h-screen w-full bg-[var(--nv-bg)] overflow-hidden">
 
-      {/* Onboarding Header */}
-      <div className="w-full text-center py-6 bg-transparent">
-        <h2 className="text-2xl font-bold text-purple-300 drop-shadow-[0_0_12px_rgba(168,85,247,0.45)]">
+      <div className="w-full text-center py-6">
+        <h2 className="text-2xl font-bold text-purple-300">
           Let’s start building your Vybe.
         </h2>
       </div>
 
-      {/* Success Screen */}
-      {isSuccess && (
-        <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 animate-fadeIn opacity-0">
-          <h2 className="text-2xl font-bold text-purple-300 mb-4 drop-shadow-[0_0_18px_rgba(168,85,247,0.55)]">
+      {isSuccess ? (
+        <div className="w-full h-full flex flex-col items-center justify-center text-center p-6">
+          <h2 className="text-2xl font-bold text-purple-300 mb-4">
             Submission Received
           </h2>
-          <p className="text-purple-200 max-w-md leading-relaxed drop-shadow-[0_0_10px_rgba(168,85,247,0.35)]">
-            Thank you for submitting your artist details with Net Vybe Music. Our team will review your submission and follow up soon.
+          <p className="text-purple-200 max-w-md">
+            Your account has been created and your submission is under review.
           </p>
         </div>
-      )}
-
-      {/* Form UI (only shows when NOT successful) */}
-      {!isSuccess && (
+      ) : (
         <>
-          {/* Slide Wrapper */}
-          <div
-            className="flex transition-transform duration-500"
-            style={{ transform: `translateX(-${activeStep * 100}%)` }}
-          >
-            {steps.map((step, index) => (
-              <div key={index} className="w-full flex-shrink-0">
-                {step}
-              </div>
-            ))}
-          </div>
+          <SlideWrapper activeStep={activeStep} steps={steps} />
 
-          {/* Navigation */}
           <StepNavigation
-            activeStep={activeStep}
-            setActiveStep={setActiveStep}
+            currentStep={activeStep + 1}
             totalSteps={steps.length}
-            onSubmit={onSubmit}
-            formData={formData}
-            validationRules={validationRules}
-            setErrors={setErrors}
-            isSubmitting={isSubmitting}
+            onNext={() => {
+              const required = validationRules[activeStep] || [];
+
+              const missing = required.filter(
+                (field) => !formData[field as keyof SignupFormData]
+              );
+
+              if (missing.length > 0) {
+                setErrors(missing);
+                return;
+              }
+
+              setErrors([]);
+
+              if (activeStep === steps.length - 1) {
+                onSubmit();
+              } else {
+                setActiveStep((prev) => prev + 1);
+              }
+            }}
+            onBack={() => {
+              if (activeStep > 0) {
+                setActiveStep((prev) => prev - 1);
+              }
+            }}
+            isNextDisabled={isSubmitting}
           />
         </>
       )}

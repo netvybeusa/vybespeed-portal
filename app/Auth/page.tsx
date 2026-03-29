@@ -20,7 +20,7 @@ export default function AuthPage() {
         await signIn(email, password);
       }
       // 🔹 Redirect after success
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err.message);
     }

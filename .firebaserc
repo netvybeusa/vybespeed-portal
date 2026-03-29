@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "net-vybe-submission"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

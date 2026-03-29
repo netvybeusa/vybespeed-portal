@@ -9,10 +9,21 @@ type StepProfileProps = {
 
 export default function StepProfile({ formData, setFormData }: StepProfileProps) {
   return (
-    <div className="w-full flex justify-center px-4">
-      <div className="w-full max-w-md bg-[var(--nv-bg-secondary)] rounded-xl p-6 shadow-[0_0_20px_rgba(162,89,255,0.25)] border border-purple-500/20 flex flex-col gap-4">
+    <div className="w-full flex justify-center px-4 py-10">
 
-        <h2 className="text-xl font-semibold text-purple-300 text-center">
+      {/* Glowing Card */}
+      <div
+        className="
+          w-full max-w-md 
+          bg-black/40 
+          rounded-xl p-6 
+          border border-purple-700/40
+          shadow-[0_0_25px_rgba(139,92,246,0.35)]
+          drop-shadow-[0_0_12px_rgba(168,85,247,0.45)]
+          flex flex-col gap-4
+        "
+      >
+        <h2 className="text-xl font-semibold text-purple-300 text-center drop-shadow-[0_0_10px_rgba(168,85,247,0.45)]">
           Artist Profile
         </h2>
 
@@ -20,10 +31,15 @@ export default function StepProfile({ formData, setFormData }: StepProfileProps)
         <textarea
           placeholder="Artist Bio"
           value={formData.bio}
-          onChange={(e) =>
-            setFormData({ ...formData, bio: e.target.value })
-          }
-          className="p-3 rounded bg-[#1A1A22] text-white h-32 resize-none border border-purple-500/20 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+          className="
+            p-3 rounded 
+            bg-black/40 
+            text-purple-300 
+            h-32 resize-none 
+            border border-purple-700/40
+            focus:outline-none focus:ring-2 focus:ring-purple-500
+          "
         />
 
         {/* Social Handle */}
@@ -31,20 +47,29 @@ export default function StepProfile({ formData, setFormData }: StepProfileProps)
           type="text"
           placeholder="Instagram / TikTok Handle"
           value={formData.socialHandle}
-          onChange={(e) =>
-            setFormData({ ...formData, socialHandle: e.target.value })
-          }
-          className="p-3 rounded bg-[#1A1A22] text-white border border-purple-500/20 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+          onChange={(e) => setFormData({ ...formData, socialHandle: e.target.value })}
+          className="
+            p-3 rounded 
+            bg-black/40 
+            text-purple-300 
+            border border-purple-700/40
+            focus:outline-none focus:ring-2 focus:ring-purple-500
+          "
         />
 
         {/* Notes */}
         <textarea
           placeholder="Additional Notes (optional)"
           value={formData.notes}
-          onChange={(e) =>
-            setFormData({ ...formData, notes: e.target.value })
-          }
-          className="p-3 rounded bg-[#1A1A22] text-white h-24 resize-none border border-purple-500/20 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          className="
+            p-3 rounded 
+            bg-black/40 
+            text-purple-300 
+            h-24 resize-none 
+            border border-purple-700/40
+            focus:outline-none focus:ring-2 focus:ring-purple-500
+          "
         />
       </div>
     </div>

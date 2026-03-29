@@ -1,94 +1,71 @@
 "use client";
 
-import { SignupFormData } from "@/types/SignupForm";
-
 type StepNavigationProps = {
-  activeStep: number;
-  setActiveStep: (step: number) => void;
+  currentStep: number;
   totalSteps: number;
-  onSubmit: () => void;
-  formData: SignupFormData;
-  validationRules: string[][];
-  setErrors: (fields: string[]) => void;
-  isSubmitting: boolean;
+  onNext: () => void;
+  onBack: () => void;
+  isNextDisabled?: boolean;
 };
 
 export default function StepNavigation({
-  activeStep,
-  setActiveStep,
+  currentStep,
   totalSteps,
-  onSubmit,
-  formData,
-  validationRules,
-  setErrors,
-  isSubmitting
+  onNext,
+  onBack,
+  isNextDisabled = false,
 }: StepNavigationProps) {
-  const isFirst = activeStep === 0;
-  const isLast = activeStep === totalSteps - 1;
-
   return (
-    <div className="w-full flex justify-between items-center px-6 py-6">
+    <div className="w-full flex justify-center px-4 py-6">
 
-      {/* Back Button */}
-      <button
-        onClick={() => {
-          if (!isFirst) setActiveStep(activeStep - 1);
-        }}
-        disabled={isFirst || isSubmitting}
-        className={`
-  px-6 py-2 rounded-full transition-all
-  ${isFirst || isSubmitting
-    ? "opacity-30 cursor-not-allowed bg-black/20 border border-purple-700/20 text-purple-300/40"
-    : "bg-black/60 border border-purple-500/60 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.35)] hover:bg-black/70 hover:border-purple-400 hover:shadow-[0_0_12px_rgba(168,85,247,0.55)]"
-  }
-`}
+      {/* Glowing Card */}
+      <div
+        className="
+          w-full max-w-md
+          bg-black/40
+          border border-purple-700/40
+          shadow-[0_0_25px_rgba(139,92,246,0.35)]
+          drop-shadow-[0_0_12px_rgba(168,85,247,0.45)]
+          rounded-2xl p-4
+          flex items-center justify-between
+        "
       >
-        Back
-      </button>
+        {/* Back Button */}
+        <button
+          onClick={onBack}
+          disabled={currentStep === 1}
+          className={`
+            text-purple-300 px-4 py-2 rounded-lg
+            transition
+            ${currentStep === 1
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:text-purple-200 hover:underline"
+            }
+          `}
+        >
+          Back
+        </button>
 
-      {/* Next or Submit */}
-      <button
-        onClick={() => {
-          if (isSubmitting) return;
+        {/* Step Indicator */}
+        <span className="text-purple-300 text-sm tracking-wide">
+          Step {currentStep} of {totalSteps}
+        </span>
 
-          const required = validationRules[activeStep];
-          const missing = required.filter(
-            (field) => !formData[field as keyof SignupFormData]
-          );
-
-          if (missing.length > 0) {
-            setErrors(missing);
-            return;
-          }
-
-          setErrors([]);
-
-          if (!isLast) {
-            setActiveStep(activeStep + 1);
-          } else {
-            onSubmit();
-          }
-        }}
-        disabled={isSubmitting}
-        className={`
-          px-8 py-2 rounded-full text-white flex items-center justify-center transition-all
-          ${isSubmitting
-            ? "bg-purple-400 cursor-not-allowed"
-            : "bg-purple-600 shadow-[0_0_12px_rgba(168,85,247,0.45)] hover:bg-purple-700 hover:shadow-[0_0_18px_rgba(168,85,247,0.65)]"
-          }
-        `}
-      >
-        {isSubmitting
-          ? "Submitting…"
-          : isLast
-          ? "Submit"
-          : "Next"}
-
-        {isSubmitting && (
-          <span className="ml-2 animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
-        )}
-      </button>
-
+        {/* Next Button */}
+        <button
+          onClick={onNext}
+          disabled={isNextDisabled}
+          className={`
+            px-5 py-2 rounded-lg text-white font-medium
+            bg-purple-700 hover:bg-purple-600
+            shadow-[0_0_15px_rgba(139,92,246,0.35)]
+            transition
+            ${isNextDisabled ? "opacity-40 cursor-not-allowed" : ""}
+          `}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
