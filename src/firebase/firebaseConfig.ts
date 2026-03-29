@@ -1,8 +1,8 @@
-// src/firebase/firebaseConfig.ts
-
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth, browserLocalPersistence, setPersistence } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
-// Only export the app — do NOT initialize Auth/Firestore/Storage here
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -12,14 +12,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Debug
-console.log("🔥 FIREBASE ENV CHECK:", {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-});
-
-// Initialize only the app
 export const app = !getApps().length
   ? initializeApp(firebaseConfig)
   : getApp();
+
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
+
+// ✅ Safe persistence
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence);
+}
