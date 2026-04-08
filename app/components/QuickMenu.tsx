@@ -20,19 +20,16 @@ export default function QuickMenu() {
   } = useAudioPlayer();
 
   const pathname = usePathname();
-  const isOnPlayerPage = pathname?.startsWith("/player") ?? false;
+  const shouldHideMiniPlayer =
+    pathname?.startsWith("/player") ||
+    pathname?.startsWith("/music/upload") ||
+    false;
 
   useEffect(() => {
-    if (isOnPlayerPage) {
+    if (shouldHideMiniPlayer) {
       closeMiniPlayer();
     }
-  }, [isOnPlayerPage, closeMiniPlayer]);
-
-  console.log("🎛 QuickMenu", {
-    currentTrack,
-    isMiniPlayerOpen,
-    isOnPlayerPage,
-  });
+  }, [shouldHideMiniPlayer, closeMiniPlayer]);
 
   return (
     <>
@@ -50,7 +47,7 @@ export default function QuickMenu() {
       </motion.div>
 
       <AnimatePresence>
-        {isMiniPlayerOpen && currentTrack && !isOnPlayerPage && (
+        {isMiniPlayerOpen && currentTrack && !shouldHideMiniPlayer && (
           <motion.div
             className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[9999] rounded-3xl bg-[#0f0f1a] border border-purple-700/40 shadow-[0_0_35px_rgba(139,92,246,0.45)] p-6 w-[85vw] md:w-80"
             initial={{ scale: 0, opacity: 0 }}

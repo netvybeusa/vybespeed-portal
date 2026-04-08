@@ -22,8 +22,8 @@ export default function DeleteTrackButton({
     setLoading(true);
 
     try {
-      // Delete Firestore document
-      await deleteDoc(doc(db, "tracks", trackId));
+      // Delete Firestore document from the correct collection
+      await deleteDoc(doc(db, "submissions", trackId));
 
       // Delete file from Firebase Storage
       if (storagePath) {
@@ -32,9 +32,12 @@ export default function DeleteTrackButton({
       }
 
       setOpen(false);
-      router.refresh();
+
+      // Simpler and more reliable for your current client-side fetch flow
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting track:", error);
+      alert("Failed to delete track. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -42,7 +45,6 @@ export default function DeleteTrackButton({
 
   return (
     <>
-      {/* Trash Icon */}
       <button
         onClick={() => setOpen(true)}
         className="text-red-400 hover:text-red-500 transition drop-shadow-[0_0_10px_rgba(239,68,68,0.6)]"
@@ -50,7 +52,6 @@ export default function DeleteTrackButton({
         <Trash2 size={20} />
       </button>
 
-      {/* Confirmation Modal */}
       {open && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#1a1a2e] p-6 rounded-2xl border border-purple-700/40 shadow-[0_0_30px_rgba(139,92,246,0.5)] w-80">
@@ -58,7 +59,8 @@ export default function DeleteTrackButton({
               Delete Track?
             </h2>
             <p className="text-gray-300 mb-6">
-              This action cannot be undone. Your track will be permanently removed.
+              This action cannot be undone. Your track will be permanently
+              removed.
             </p>
 
             <div className="flex justify-end gap-3">
@@ -72,7 +74,7 @@ export default function DeleteTrackButton({
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition shadow-[0_0_20px_rgba(239,68,68,0.6)]"
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition shadow-[0_0_20px_rgba(239,68,68,0.6)] disabled:opacity-60"
               >
                 {loading ? "Deleting..." : "Delete"}
               </button>
